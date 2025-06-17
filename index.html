@@ -8,30 +8,26 @@
             max-width: 500px;
             margin: 0 auto;
             padding: 20px;
-        }
-        #qr-container {
-            margin: 20px 0;
             text-align: center;
         }
-        canvas {
-            border: 1px solid #ddd;
-            max-width: 100%;
+        #qr-code {
+            margin: 20px auto;
+            max-width: 300px;
         }
         button {
-            padding: 8px 15px;
-            background: #007bff;
+            padding: 10px 20px;
+            background: #4CAF50;
             color: white;
             border: none;
             cursor: pointer;
-            border-radius: 4px;
-        }
-        button:disabled {
-            background: #cccccc;
+            border-radius: 5px;
+            font-size: 16px;
         }
         input {
-            padding: 8px;
+            padding: 10px;
             width: 100%;
-            box-sizing: border-box;
+            font-size: 16px;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -39,61 +35,70 @@
     <h1>QR Code Generator</h1>
     <input type="text" id="qr-input" placeholder="Enter text or URL..." />
     <button id="generate-btn">Generate QR Code</button>
-    
-    <div id="qr-container">
-        <!-- QR Code will appear here -->
-    </div>
-    
-    <button id="download-btn" disabled>Download PNG</button>
+    <div id="qr-code"></div>
+    <button id="download-btn" disabled>Download QR Code</button>
 
-    <!-- Using qrcode.js instead of QRious -->
+    <!-- Using the most reliable QR code library -->
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    
     <script>
-        const input = document.getElementById('qr-input');
-        const generateBtn = document.getElementById('generate-btn');
-        const downloadBtn = document.getElementById('download-btn');
-        const qrContainer = document.getElementById('qr-container');
-        
-        let currentQRCode = null;
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('qr-input');
+            const generateBtn = document.getElementById('generate-btn');
+            const downloadBtn = document.getElementById('download-btn');
+            const qrCodeDiv = document.getElementById('qr-code');
+            
+            let currentQRCode = null;
 
-        generateBtn.addEventListener('click', () => {
-            const text = input.value.trim();
-            
-            if (!text) {
-                alert('Please enter some text or URL!');
-                return;
-            }
-            
-            // Clear previous QR code
-            qrContainer.innerHTML = '';
-            
-            // Generate new QR code
-            QRCode.toCanvas(qrContainer, text, {
-                width: 200,
-                margin: 2,
-                color: {
-                    dark: '#000000',
-                    light: '#ffffff'
-                }
-            }, (error, canvas) => {
-                if (error) {
-                    console.error(error);
-                    alert('Failed to generate QR code!');
+            generateBtn.addEventListener('click', function() {
+                const text = input.value.trim();
+                
+                if (!text) {
+                    alert('Please enter some text or URL!');
                     return;
                 }
                 
-                currentQRCode = canvas;
-                downloadBtn.disabled = false;
+                try {
+                    // Clear previous QR code
+                    qrCodeDiv.innerHTML = '';
+                    
+                    // Create canvas element
+                    const canvas = document.createElement('canvas');
+                    
+                    // Generate QR code directly to canvas
+                    QRCode.toCanvas(canvas, text, {
+                        width: 250,
+                        margin: 2,
+                        color: {
+                            dark: '#000000',
+                            light: '#ffffff'
+                        }
+                    }, function(error) {
+                        if (error) {
+                            console.error('QR Code Error:', error);
+                            alert('Error generating QR code. Try different text.');
+                            return;
+                        }
+                        
+                        qrCodeDiv.appendChild(canvas);
+                        currentQRCode = canvas;
+                        downloadBtn.disabled = false;
+                    });
+                    
+                } catch (e) {
+                    console.error('Exception:', e);
+                    alert('Unexpected error occurred. Please try again.');
+                }
             });
-        });
 
-        downloadBtn.addEventListener('click', () => {
-            if (!currentQRCode) return;
-            
-            const link = document.createElement('a');
-            link.download = 'qrcode.png';
-            link.href = currentQRCode.toDataURL('image/png');
-            link.click();
+            downloadBtn.addEventListener('click', function() {
+                if (!currentQRCode) return;
+                
+                const link = document.createElement('a');
+                link.download = 'qrcode-' + Date.now() + '.png';
+                link.href = currentQRCode.toDataURL('image/png');
+                link.click();
+            });
         });
     </script>
 </body>
